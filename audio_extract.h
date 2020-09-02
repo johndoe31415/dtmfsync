@@ -21,27 +21,22 @@
  *	Johannes Bauer <JohannesBauer@gmx.de>
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#ifndef __AUDIO_EXTRACT_H__
+#define __AUDIO_EXTRACT_H__
+
 #include <stdint.h>
-#include "pgmopts.h"
-#include "audio_extract.h"
+#include <sys/types.h>
+#include <unistd.h>
 
-int main(int argc, char **argv) {
-	pgmopts_parse(argc, argv);
+struct audio_stream_t {
+	int child_fd;
+	pid_t child_pid;
+};
 
-	struct audio_stream_t *stream = extract_audio(pgmopts->filename);
-	if (!stream) {
-		fprintf(stderr, "Error opening stream: %s\n", pgmopts->filename);
-		exit(EXIT_FAILURE);
-	}
+/*************** AUTO GENERATED SECTION FOLLOWS ***************/
+struct audio_stream_t *extract_audio(const char *input_filename);
+int grab_audio_chunk(struct audio_stream_t *stream, uint8_t *buffer, unsigned int max_length);
+void close_audio(struct audio_stream_t *stream);
+/***************  AUTO GENERATED SECTION ENDS   ***************/
 
-	uint8_t data_buffer[1024];
-	int samples;
-	while ((samples = grab_audio_chunk(stream, data_buffer, sizeof(data_buffer))) > 0) {
-		printf("got %d\n", samples);
-	}
-
-	close_audio(stream);
-	return 0;
-}
+#endif

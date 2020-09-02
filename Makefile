@@ -7,7 +7,8 @@ LDFLAGS :=
 OBJS := \
 	tsfind.o \
 	argparse.o \
-	pgmopts.o
+	pgmopts.o \
+	audio_extract.o
 
 all: tsfind
 
