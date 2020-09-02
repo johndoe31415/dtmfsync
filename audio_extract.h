@@ -29,7 +29,7 @@
 #include <unistd.h>
 
 struct audio_stream_t {
-	int child_fd;
+	FILE *child_f;
 	pid_t child_pid;
 };
 

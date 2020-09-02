@@ -71,9 +71,14 @@ struct audio_stream_t *extract_audio(const char *input_filename) {
 		return NULL;
 	}
 
-//	set_fd_nonblock(pipefd[0]);
-//	stream->child_f = fdopen(pipefd[0], "r");
-	stream->child_fd = pipefd[0];
+	stream->child_f = fdopen(pipefd[0], "r");
+	if (!stream->child_f) {
+		perror("fdopen");
+		close(pipefd[0]);
+		close(pipefd[1]);
+		close_audio(stream);
+		return NULL;
+	}
 	stream->child_pid = fork();
 	if (stream->child_pid == -1) {
 		perror("fork");
@@ -97,13 +102,13 @@ struct audio_stream_t *extract_audio(const char *input_filename) {
 }
 
 int grab_audio_chunk(struct audio_stream_t *stream, uint8_t *buffer, unsigned int max_length) {
-	ssize_t bytes_read = read(stream->child_fd, buffer, max_length);
+	ssize_t bytes_read = fread(buffer, 1, max_length, stream->child_f);
 	return bytes_read;
 }
 
 void close_audio(struct audio_stream_t *stream) {
-	if (stream->child_fd) {
-		close(stream->child_fd);
+	if (stream->child_f) {
+		fclose(stream->child_f);
 	}
 	free(stream);
 }
