@@ -25,17 +25,20 @@
 #define __AUDIO_EXTRACT_H__
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include <unistd.h>
 
 struct audio_stream_t {
+	bool header_read;
+	unsigned int sample_rate;
 	FILE *child_f;
 	pid_t child_pid;
 };
 
 /*************** AUTO GENERATED SECTION FOLLOWS ***************/
 struct audio_stream_t *extract_audio(const char *input_filename);
-int grab_audio_chunk(struct audio_stream_t *stream, uint8_t *buffer, unsigned int max_length);
+int grab_audio_chunk(struct audio_stream_t *stream, void *buffer, unsigned int max_length);
 void close_audio(struct audio_stream_t *stream);
 /***************  AUTO GENERATED SECTION ENDS   ***************/
 

@@ -36,10 +36,13 @@ int main(int argc, char **argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	uint8_t data_buffer[1024];
+	int16_t data_buffer[1024];
 	int samples;
 	while ((samples = grab_audio_chunk(stream, data_buffer, sizeof(data_buffer))) > 0) {
 		printf("got %d\n", samples);
+		for (int i = 0; i < samples; i++) {
+			printf("%d\n", data_buffer[i]);
+		}
 	}
 
 	close_audio(stream);
