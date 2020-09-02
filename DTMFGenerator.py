@@ -21,6 +21,8 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import time
+import datetime
+import collections
 import random
 import subprocess
 
@@ -51,6 +53,7 @@ class Scrambler():
 		return checksum
 
 class DTMFGenerator():
+	_Timestamp = collections.namedtuple("Timestamp", [ "int_value", "timestamp_utc" ])
 	_FREQUENCIES = {
 		"0": (941, 1336),
 		"1": (697, 1209),
@@ -101,7 +104,7 @@ class DTMFGenerator():
 
 	def generate_prng_scrambled_crc(self, stream):
 		seed = random.randint(1, 255)
-		self.scrambler.seed = seed
+		self.scrambler.state = seed
 		checksum = Scrambler(seed).checksum(stream)
 		self.generate_byte(seed)
 		self.generate_scrambled(stream)
@@ -130,7 +133,32 @@ class DTMFGenerator():
 		cmd = [ "sox", "-n", filename ] + self._synth_cmd()
 		subprocess.check_call(cmd)
 
+	@classmethod
+	def validate_prng_scrambled_data(cls, data):
+		assert(len(data) == 7)
+		seed = data[0]
+		assert(seed != 0)
+		scrambler = Scrambler(state = seed)
+		payload = bytes(byte ^ scrambler.next_value() for byte in data[1 : -1])
+		calculated_checksum = Scrambler(seed).checksum(payload)
+		received_checksum = data[-1]
+		if calculated_checksum == received_checksum:
+			return payload
+		else:
+			return None
+
+	@classmethod
+	def validate_prng_scrambled_timestamp(cls, data):
+		payload = cls.validate_prng_scrambled_data(data)
+		if payload is None:
+			return None
+		int_value = int.from_bytes(payload, byteorder = "little")
+		ts = datetime.datetime.utcfromtimestamp(int_value)
+		return cls._Timestamp(int_value = int_value, timestamp_utc = ts)
+
 if __name__ == "__main__":
 	gen = DTMFGenerator()
 	gen.generate_prng_scrambled_crc_timestamp()
 	gen.play()
+
+	print(gen.validate_prng_scrambled_timestamp(bytes.fromhex("d0 d0 bf 55 52 a9 57")))	# plain: b88b4f5f00
