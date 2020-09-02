@@ -21,31 +21,35 @@
  *	Johannes Bauer <JohannesBauer@gmx.de>
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#ifndef __GOERTZEL_H__
+#define __GOERTZEL_H__
+
 #include <stdint.h>
-#include "pgmopts.h"
-#include "audio_extract.h"
-#include "goertzel.h"
+#include <stdbool.h>
 
-int main(int argc, char **argv) {
-	pgmopts_parse(argc, argv);
+enum dtmf_char_t {
+	CHAR_0 = 0,
+	CHAR_1 = 1,
+	CHAR_2 = 2,
+	CHAR_3 = 3,
+	CHAR_4 = 4,
+	CHAR_5 = 5,
+	CHAR_6 = 6,
+	CHAR_7 = 7,
+	CHAR_8 = 8,
+	CHAR_9 = 9,
+	CHAR_A = 0xa,
+	CHAR_B = 0xb,
+	CHAR_C = 0xc,
+	CHAR_D = 0xd,
+	CHAR_ASTERISK = 0xe,
+	CHAR_POUND = 0xf,
+	CHAR_NONE,
+};
 
-	struct audio_stream_t *stream = extract_audio(pgmopts->filename);
-	if (!stream) {
-		fprintf(stderr, "Error opening stream: %s\n", pgmopts->filename);
-		exit(EXIT_FAILURE);
-	}
+/*************** AUTO GENERATED SECTION FOLLOWS ***************/
+bool goertzel_detect(const int16_t *audio_samples, unsigned int sample_count, float target_frequency, float sample_frequency);
+enum dtmf_char_t goertzel_detect_dtmf(const int16_t *audio_samples, unsigned int sample_count, float sample_frequency);
+/***************  AUTO GENERATED SECTION ENDS   ***************/
 
-	int16_t data_buffer[1024];
-	int samples;
-	while ((samples = grab_audio_chunk(stream, data_buffer, sizeof(data_buffer))) > 0) {
-		enum dtmf_char_t dtmf = goertzel_detect_dtmf(data_buffer, samples, stream->sample_rate);
-		if (dtmf != CHAR_NONE) {
-			printf("DETECTED 0x%x\n", dtmf);
-		}
-	}
-
-	close_audio(stream);
-	return 0;
-}
+#endif
